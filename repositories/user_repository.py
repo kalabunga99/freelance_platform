@@ -57,3 +57,22 @@ def get_user_by_username(username):
     finally:
         cursor.close()
         db.close()
+
+def update_user_status(username, wrong_attempt, is_locked):
+    db = get_connection()
+    if not db:
+        return False
+    cursor = db.cursor()
+    try:
+        sql_locked = 1 if is_locked else 0
+        query = "UPDATE users SET wrong_attempt = %s, is_locked = %s WHERE username = %s"
+        cursor.execute(query, (wrong_attempt, sql_locked, username))
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        print(f"Error: {e}")
+        return False
+    finally:
+        cursor.close()
+        db.close()

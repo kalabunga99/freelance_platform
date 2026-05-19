@@ -35,7 +35,9 @@ class MainWindow(ctk.CTk):
 
     def show_dashboard(self, user_id, role):
         self.clear_frame()
-        self.geometry("850x650")
+        # Proširene dimenzije glavnog ekrana za komotan rad
+        self.geometry("800x750")
+        self.update_idletasks()
 
         if role == "Client":
             self.current_frame = ClientDashboard(self, user_id, self.trigger_logout)
@@ -46,4 +48,5 @@ class MainWindow(ctk.CTk):
 
     def trigger_logout(self):
         self.geometry("500x600")
+        self.update_idletasks()
         self.show_login()

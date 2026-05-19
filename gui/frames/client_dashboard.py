@@ -1,6 +1,8 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from gui.frames.post_job_frame import PostJobFrame
+from gui.frames.my_jobs_frame import MyJobsFrame
+from gui.frames.profile_frame import ProfileFrame
 from services.job_service import post_new_job
 
 
@@ -26,12 +28,12 @@ class ClientDashboard(ctk.CTkFrame):
 
         self.btn_my_jobs = ctk.CTkButton(self.topbar, text="My Posts", fg_color="transparent",
                                          text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), width=100,
-                                         height=35, command=self.load_main_dashboard)
+                                         height=35, command=self.load_my_jobs_list)
         self.btn_my_jobs.pack(side="left", padx=10)
 
         self.btn_profile = ctk.CTkButton(self.topbar, text="Profile", fg_color="transparent",
                                          text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), width=100,
-                                         height=35)
+                                         height=35, command=self.load_profile_screen)
         self.btn_profile.pack(side="left", padx=10)
 
         self.btn_logout = ctk.CTkButton(self.topbar, text="Logout", fg_color="#E74C3C", hover_color="#C0392B",
@@ -78,6 +80,16 @@ class ClientDashboard(ctk.CTkFrame):
     def load_post_job_form(self):
         self.clear_content_area()
         self.content_area = PostJobFrame(self, self.user_id, self.load_main_dashboard, self.process_job_submission)
+        self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+
+    def load_my_jobs_list(self):
+        self.clear_content_area()
+        self.content_area = MyJobsFrame(self, self.user_id, self.load_main_dashboard)
+        self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+
+    def load_profile_screen(self):
+        self.clear_content_area()
+        self.content_area = ProfileFrame(self, self.user_id, self.load_main_dashboard)
         self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
 
     def process_job_submission(self, title, description, budget, deadline, seniority):

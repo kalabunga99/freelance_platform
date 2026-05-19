@@ -13,7 +13,7 @@ class MainWindow(ctk.CTk):
         ctk.set_default_color_theme("blue")
 
         self.title("Freelance Platform")
-        self.geometry("450x550")
+        self.geometry("500x600")
         self.resizable(False, False)
 
         self.current_frame = None
@@ -35,7 +35,7 @@ class MainWindow(ctk.CTk):
 
     def show_dashboard(self, user_id, role):
         self.clear_frame()
-        self.geometry("700x550")
+        self.geometry("850x650")
 
         if role == "Client":
             self.current_frame = ClientDashboard(self, user_id, self.trigger_logout)
@@ -45,5 +45,5 @@ class MainWindow(ctk.CTk):
         self.current_frame.pack(fill="both", expand=True, padx=0, pady=0)
 
     def trigger_logout(self):
-        self.geometry("450x550")
+        self.geometry("500x600")
         self.show_login()

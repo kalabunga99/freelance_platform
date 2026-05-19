@@ -90,3 +90,21 @@ def update_job_deadline(job_id, new_deadline):
     finally:
         cursor.close()
         db.close()
+
+
+def get_all_open_jobs():
+    db = get_connection()
+    if not db:
+        return []
+
+    cursor = db.cursor()
+    try:
+        query = "SELECT * FROM jobs WHERE status = 'Open'"
+        cursor.execute(query)
+        return cursor.fetchall()
+    except Exception as e:
+        print(f"Error: {e}")
+        return []
+    finally:
+        cursor.close()
+        db.close()

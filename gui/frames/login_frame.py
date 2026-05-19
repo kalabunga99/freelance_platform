@@ -4,9 +4,10 @@ from services.auth_service import login_user
 
 
 class LoginFrame(ctk.CTkFrame):
-    def __init__(self, master, switch_to_register_cb):
+    def __init__(self, master, switch_to_register_cb, login_success_cb):
         super().__init__(master)
         self.switch_to_register_cb = switch_to_register_cb
+        self.login_success_cb = login_success_cb
 
         self.label_title = ctk.CTkLabel(self, text="Welcome Back", font=("Arial", 24, "bold"))
         self.label_title.pack(pady=30)
@@ -33,9 +34,10 @@ class LoginFrame(ctk.CTkFrame):
             messagebox.showwarning("Input Error", "Please fill in all fields.")
             return
 
-        success, message = login_user(username, password)
+        success, message, user_id, role = login_user(username, password)
 
         if success:
             messagebox.showinfo("Success", message)
+            self.login_success_cb(user_id, role)
         else:
             messagebox.showerror("Login Failed", message)

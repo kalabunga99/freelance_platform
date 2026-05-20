@@ -54,33 +54,69 @@ class FreelancerDashboard(ctk.CTkFrame):
 
     def load_main_dashboard(self):
         self.clear_content_area()
+        from services.analytics_service import get_freelancer_dashboard_stats, get_platform_statistics_service
+        from services.user_service import get_free_profile_data
+
+        try:
+            my_stats = get_freelancer_dashboard_stats(self.user_id)
+            global_stats = get_platform_statistics_service()
+            profile = get_free_profile_data(self.user_id)
+            rating = float(profile[4]) if profile and len(profile) > 4 else 0.0
+        except Exception as e:
+            print(f"Error loading stats: {e}")
+            my_stats = {'active_projects': 0, 'total_earnings': 0.00}
+            global_stats = {'total_jobs': 0, 'hire_success_rate': 0.0, 'avg_fill_time_days': 0.0, 'top_skills': [],
+                            'monthly_revenue': 0.00, 'top_freelancers': []}
+            rating = 0.0
 
         self.content_area = ctk.CTkFrame(self, corner_radius=15)
         self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
 
         welcome_label = ctk.CTkLabel(self.content_area, text="Welcome, Freelancer!", font=("Arial", 22, "bold"))
-        welcome_label.pack(anchor="w", padx=30, pady=(30, 10))
+        welcome_label.pack(anchor="w", padx=30, pady=(25, 5))
 
         sub_label = ctk.CTkLabel(self.content_area, text="Browse new jobs and track your earnings.", font=("Arial", 14),
                                  text_color="gray")
-        sub_label.pack(anchor="w", padx=30, pady=(0, 20))
+        sub_label.pack(anchor="w", padx=30, pady=(0, 15))
 
         stats_frame = ctk.CTkFrame(self.content_area, fg_color="transparent")
-        stats_frame.pack(fill="x", padx=30, pady=10)
+        stats_frame.pack(fill="x", padx=25, pady=5)
 
-        card1 = ctk.CTkFrame(stats_frame, width=150, height=80, corner_radius=10)
-        card1.pack(side="left", expand=True, fill="both", padx=(0, 10))
-        card1_title = ctk.CTkLabel(card1, text="Rating", font=("Arial", 12), text_color="gray")
-        card1_title.pack(pady=(10, 2))
-        card1_val = ctk.CTkLabel(card1, text="0.0 ★", font=("Arial", 20, "bold"), text_color="#F1C40F")
-        card1_val.pack(pady=(0, 10))
+        card1 = ctk.CTkFrame(stats_frame, width=220, height=85, corner_radius=10)
+        card1.pack(side="left", expand=True, fill="both", padx=5)
+        ctk.CTkLabel(card1, text="My Active Projects", font=("Arial", 12), text_color="gray").pack(pady=(12, 2))
+        ctk.CTkLabel(card1, text=str(my_stats.get('active_projects', 0)), font=("Arial", 20, "bold"),
+                     text_color="#3498DB").pack()
 
-        card2 = ctk.CTkFrame(stats_frame, width=150, height=80, corner_radius=10)
-        card2.pack(side="left", expand=True, fill="both", padx=10)
-        card2_title = ctk.CTkLabel(card2, text="Earnings", font=("Arial", 12), text_color="gray")
-        card2_title.pack(pady=(10, 2))
-        card2_val = ctk.CTkLabel(card2, text="$0.00", font=("Arial", 20, "bold"))
-        card2_val.pack(pady=(0, 10))
+        card2 = ctk.CTkFrame(stats_frame, width=220, height=85, corner_radius=10)
+        card2.pack(side="left", expand=True, fill="both", padx=5)
+        ctk.CTkLabel(card2, text="My Public Rating", font=("Arial", 12), text_color="gray").pack(pady=(12, 2))
+        ctk.CTkLabel(card2, text=f"{rating:.2f} ★", font=("Arial", 20, "bold"), text_color="#F1C40F").pack()
+
+        card3 = ctk.CTkFrame(stats_frame, width=220, height=85, corner_radius=10)
+        card3.pack(side="left", expand=True, fill="both", padx=5)
+        ctk.CTkLabel(card3, text="Platform 30-Day Volume", font=("Arial", 12), text_color="gray").pack(pady=(12, 2))
+        ctk.CTkLabel(card3, text=f"${global_stats.get('monthly_revenue', 0.00):.2f}", font=("Arial", 20, "bold"),
+                     text_color="#E67E22").pack()
+
+        card4 = ctk.CTkFrame(self.content_area, corner_radius=10, height=70)
+        card4.pack(fill="x", pady=15, padx=30)
+        ctk.CTkLabel(card4, text="My Lifetime Net Earnings", font=("Arial", 12), text_color="gray").pack(pady=(8, 1))
+        ctk.CTkLabel(card4, text=f"${my_stats.get('total_earnings', 0.00):.2f}", font=("Arial", 22, "bold"),
+                     text_color="#2ECC71").pack(pady=(0, 8))
+
+        leaderboard_box = ctk.CTkFrame(self.content_area, corner_radius=10)
+        leaderboard_box.pack(fill="x", padx=30, pady=(5, 20))
+        ctk.CTkLabel(leaderboard_box, text="🏆 Top Rated Platform Freelancers", font=("Arial", 13, "bold")).pack(pady=8)
+
+        freelancers_list = global_stats.get('top_freelancers', [])
+        if not freelancers_list:
+            ctk.CTkLabel(leaderboard_box, text="No leaderboard data recorded yet.", font=("Arial", 12, "italic"),
+                         text_color="gray").pack(pady=5)
+        else:
+            for f in freelancers_list:
+                ctk.CTkLabel(leaderboard_box, text=f"⭐ {f['name']} (Rating: {float(f['rating']):.2f} ★)",
+                             font=("Arial", 12)).pack(anchor="w", padx=25, pady=3)
 
     def load_browse_jobs_screen(self):
         self.clear_content_area()
@@ -111,5 +147,6 @@ class FreelancerDashboard(ctk.CTkFrame):
     def load_chat_screen(self, thread_id, participant_username, participant_id):
         self.clear_content_area()
         from gui.frames.chat_frame import ChatFrame
-        self.content_area = ChatFrame(self, self.user_id, thread_id, participant_username, participant_id, self.load_inbox_screen)
+        self.content_area = ChatFrame(self, self.user_id, thread_id, participant_username, participant_id,
+                                      self.load_inbox_screen)
         self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)

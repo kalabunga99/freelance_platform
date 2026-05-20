@@ -56,33 +56,77 @@ class ClientDashboard(ctk.CTkFrame):
 
     def load_main_dashboard(self):
         self.clear_content_area()
+        from services.analytics_service import get_client_dashboard_stats, get_platform_statistics_service
+
+        try:
+            my_stats = get_client_dashboard_stats(self.user_id)
+            global_stats = get_platform_statistics_service()
+        except Exception as e:
+            print(f"Error loading stats: {e}")
+            my_stats = {'total_posts': 0, 'hire_success_rate': 0.0, 'total_spent': 0.00}
+            global_stats = {'total_jobs': 0, 'hire_success_rate': 0.0, 'avg_fill_time_days': 0.0, 'top_skills': [],
+                            'monthly_revenue': 0.00, 'top_freelancers': []}
 
         self.content_area = ctk.CTkFrame(self, corner_radius=15)
         self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
 
         welcome_label = ctk.CTkLabel(self.content_area, text="Welcome, Client!", font=("Arial", 22, "bold"))
-        welcome_label.pack(anchor="w", padx=30, pady=(30, 10))
+        welcome_label.pack(anchor="w", padx=30, pady=(25, 5))
 
         sub_label = ctk.CTkLabel(self.content_area, text="Manage your projects and discover top talent.",
                                  font=("Arial", 14), text_color="gray")
-        sub_label.pack(anchor="w", padx=30, pady=(0, 20))
+        sub_label.pack(anchor="w", padx=30, pady=(0, 15))
 
         stats_frame = ctk.CTkFrame(self.content_area, fg_color="transparent")
-        stats_frame.pack(fill="x", padx=30, pady=10)
+        stats_frame.pack(fill="x", padx=25, pady=5)
 
-        card1 = ctk.CTkFrame(stats_frame, width=150, height=80, corner_radius=10)
-        card1.pack(side="left", expand=True, fill="both", padx=(0, 10))
-        card1_title = ctk.CTkLabel(card1, text="Active Jobs", font=("Arial", 12), text_color="gray")
-        card1_title.pack(pady=(10, 2))
-        card1_val = ctk.CTkLabel(card1, text="0", font=("Arial", 20, "bold"))
-        card1_val.pack(pady=(0, 10))
+        card1 = ctk.CTkFrame(stats_frame, width=220, height=85, corner_radius=10)
+        card1.pack(side="left", expand=True, fill="both", padx=5)
+        ctk.CTkLabel(card1, text="My Total Job Posts", font=("Arial", 12), text_color="gray").pack(pady=(12, 2))
+        ctk.CTkLabel(card1, text=str(my_stats.get('total_posts', 0)), font=("Arial", 20, "bold")).pack()
 
-        card2 = ctk.CTkFrame(stats_frame, width=150, height=80, corner_radius=10)
-        card2.pack(side="left", expand=True, fill="both", padx=10)
-        card2_title = ctk.CTkLabel(card2, text="Total Spent", font=("Arial", 12), text_color="gray")
-        card2_title.pack(pady=(10, 2))
-        card2_val = ctk.CTkLabel(card2, text="$0.00", font=("Arial", 20, "bold"))
-        card2_val.pack(pady=(0, 10))
+        card2 = ctk.CTkFrame(stats_frame, width=220, height=85, corner_radius=10)
+        card2.pack(side="left", expand=True, fill="both", padx=5)
+        ctk.CTkLabel(card2, text="My Hire Success Rate", font=("Arial", 12), text_color="gray").pack(pady=(12, 2))
+        ctk.CTkLabel(card2, text=f"{my_stats.get('hire_success_rate', 0.0)}%", font=("Arial", 20, "bold"),
+                     text_color="#2ECC71").pack()
+
+        card3 = ctk.CTkFrame(stats_frame, width=220, height=85, corner_radius=10)
+        card3.pack(side="left", expand=True, fill="both", padx=5)
+        ctk.CTkLabel(card3, text="Platform Avg Fill Duration", font=("Arial", 12), text_color="gray").pack(pady=(12, 2))
+        ctk.CTkLabel(card3, text=f"{global_stats.get('avg_fill_time_days', 0.0)} Days", font=("Arial", 20, "bold"),
+                     text_color="#3498DB").pack()
+
+        card4 = ctk.CTkFrame(self.content_area, corner_radius=10, height=70)
+        card4.pack(fill="x", pady=15, padx=30)
+        ctk.CTkLabel(card4, text="Total Budget Invested", font=("Arial", 12), text_color="gray").pack(pady=(8, 1))
+        ctk.CTkLabel(card4, text=f"${my_stats.get('total_spent', 0.00):.2f}", font=("Arial", 22, "bold"),
+                     text_color="#E67E22").pack(pady=(0, 8))
+
+        skills_box = ctk.CTkFrame(self.content_area, corner_radius=10)
+        skills_box.pack(fill="x", padx=30, pady=(5, 20))
+        ctk.CTkLabel(skills_box, text="🔥 Most Demanded Market Skills", font=("Arial", 13, "bold")).pack(pady=(8, 10))
+
+        skills_list = global_stats.get('top_skills', [])
+        if not skills_list:
+            ctk.CTkLabel(skills_box, text="No metrics recorded yet.", font=("Arial", 12, "italic"),
+                         text_color="gray").pack(pady=10)
+        else:
+            max_count = max([s['skill_count'] for s in skills_list]) if skills_list else 1
+            for s in skills_list:
+                row = ctk.CTkFrame(skills_box, fg_color="transparent")
+                row.pack(fill="x", padx=30, pady=4)
+
+                lbl_name = ctk.CTkLabel(row, text=s['skill_name'], font=("Arial", 12), width=180, anchor="w")
+                lbl_name.pack(side="left")
+
+                progress_val = s['skill_count'] / max_count
+                progress = ctk.CTkProgressBar(row, width=280, height=8, fg_color="gray30", progress_color="#3498DB")
+                progress.pack(side="left", padx=10, pady=8)
+                progress.set(progress_val)
+
+                lbl_count = ctk.CTkLabel(row, text=f"{s['skill_count']} jobs", font=("Arial", 11), text_color="gray")
+                lbl_count.pack(side="right")
 
     def load_post_job_form(self):
         self.clear_content_area()
@@ -112,7 +156,15 @@ class ClientDashboard(ctk.CTkFrame):
     def load_chat_screen(self, thread_id, participant_username, participant_id):
         self.clear_content_area()
         from gui.frames.chat_frame import ChatFrame
-        self.content_area = ChatFrame(self, self.user_id, thread_id, participant_username, participant_id, self.load_inbox_screen)
+        self.content_area = ChatFrame(self, self.user_id, thread_id, participant_username, participant_id,
+                                      self.load_inbox_screen)
+        self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+
+    def load_contract_details(self, project_id, job_title, partner_username, project_status):
+        self.clear_content_area()
+        from gui.frames.contract_details_frame import ContractDetailsFrame
+        self.content_area = ContractDetailsFrame(self, project_id, job_title, partner_username, project_status,
+                                                 self.load_my_jobs_list)
         self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
 
     def process_job_submission(self, title, description, budget, deadline, seniority):
@@ -121,9 +173,3 @@ class ClientDashboard(ctk.CTkFrame):
             self.load_main_dashboard()
         else:
             messagebox.showerror("Database Error", "Failed to post the job vacancy. Check your database connection.")
-
-    def load_contract_details(self, project_id, job_title, partner_username, project_status):
-        self.clear_content_area()
-        from gui.frames.contract_details_frame import ContractDetailsFrame
-        self.content_area = ContractDetailsFrame(self, project_id, job_title, partner_username, project_status, self.load_my_jobs_list)
-        self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)

@@ -40,6 +40,7 @@ def add_user(user_obj: User | Client | Freelancer):
         cursor.close()
         db.close()
 
+
 def get_user_by_username(username):
     db = get_connection()
     cursor = db.cursor()
@@ -57,6 +58,7 @@ def get_user_by_username(username):
     finally:
         cursor.close()
         db.close()
+
 
 def update_user_status(username, wrong_attempt, is_locked):
     db = get_connection()
@@ -76,6 +78,7 @@ def update_user_status(username, wrong_attempt, is_locked):
     finally:
         cursor.close()
         db.close()
+
 
 def get_client_profile(user_id):
     db = get_connection()
@@ -98,14 +101,15 @@ def get_client_profile(user_id):
         cursor.close()
         db.close()
 
-def update_client_profile(user_id, company_name, budget):
+
+def update_client_profile(user_id, company_name):
     db = get_connection()
     if not db:
         return False
     cursor = db.cursor()
     try:
-        query = "UPDATE clients SET company_name = %s, budget = %s WHERE user_id = %s"
-        cursor.execute(query, (company_name, budget, user_id))
+        query = "UPDATE clients SET company_name = %s WHERE user_id = %s"
+        cursor.execute(query, (company_name, user_id))
         db.commit()
         return True
     except Exception as e:
@@ -115,6 +119,27 @@ def update_client_profile(user_id, company_name, budget):
     finally:
         cursor.close()
         db.close()
+
+
+def update_client_balance(user_id, amount):
+    db = get_connection()
+    if not db:
+        return False
+    cursor = db.cursor()
+    try:
+        query = "UPDATE clients SET budget = budget + %s WHERE user_id = %s"
+        cursor.execute(query, (amount, user_id))
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        print(f"Error: {e}")
+        return False
+    finally:
+        cursor.close()
+        db.close()
+
+
 def get_freelancer_profile(user_id):
     db = get_connection()
     if not db:
@@ -136,6 +161,7 @@ def get_freelancer_profile(user_id):
         cursor.close()
         db.close()
 
+
 def update_freelancer_profile(user_id, name, years_of_experience):
     db = get_connection()
     if not db:
@@ -153,6 +179,8 @@ def update_freelancer_profile(user_id, name, years_of_experience):
     finally:
         cursor.close()
         db.close()
+
+
 def get_freelancer_skills(user_id):
     db = get_connection()
     if not db:
@@ -170,6 +198,7 @@ def get_freelancer_skills(user_id):
         cursor.close()
         db.close()
 
+
 def add_freelancer_skill(user_id, skill_name):
     db = get_connection()
     if not db:
@@ -186,6 +215,8 @@ def add_freelancer_skill(user_id, skill_name):
     finally:
         cursor.close()
         db.close()
+
+
 def get_freelancer_languages(user_id):
     db = get_connection()
     if not db:
@@ -203,6 +234,7 @@ def get_freelancer_languages(user_id):
         cursor.close()
         db.close()
 
+
 def add_freelancer_language(user_id, language_name):
     db = get_connection()
     if not db:
@@ -219,32 +251,49 @@ def add_freelancer_language(user_id, language_name):
     finally:
         cursor.close()
         db.close()
+
+
 def get_freelancer_portfolio(user_id):
     db = get_connection()
-    if not db: return []
+    if not db:
+        return []
     cursor = db.cursor()
     try:
         cursor.execute("SELECT link_url FROM freelancer_portfolio WHERE user_id = %s", (user_id,))
         return [row[0] for row in cursor.fetchall()]
-    except: return []
-    finally: cursor.close(); db.close()
+    except:
+        return []
+    finally:
+        cursor.close()
+        db.close()
+
 
 def add_freelancer_portfolio(user_id, link_url):
     db = get_connection()
-    if not db: return False
+    if not db:
+        return False
     cursor = db.cursor()
     try:
         cursor.execute("INSERT INTO freelancer_portfolio (user_id, link_url) VALUES (%s, %s)", (user_id, link_url))
-        db.commit(); return True
-    except: return False
-    finally: cursor.close(); db.close()
+        db.commit()
+        return True
+    except:
+        return False
+    finally:
+        cursor.close()
+        db.close()
+
 
 def get_freelancer_history(user_id):
     db = get_connection()
-    if not db: return []
+    if not db:
+        return []
     cursor = db.cursor()
     try:
         cursor.execute("SELECT job_title, earnings FROM freelancer_history WHERE user_id = %s", (user_id,))
         return cursor.fetchall()
-    except: return []
-    finally: cursor.close(); db.close()
+    except:
+        return []
+    finally:
+        cursor.close()
+        db.close()

@@ -1,6 +1,8 @@
 import customtkinter as ctk
 from gui.frames.browse_jobs_frame import BrowseJobsFrame
 from gui.frames.freelancer_profile_frame import FreelancerProfileFrame
+from gui.frames.apply_job_frame import ApplyJobFrame
+from gui.frames.my_proposals_frame import MyProposalsFrame
 
 
 class FreelancerDashboard(ctk.CTkFrame):
@@ -25,7 +27,7 @@ class FreelancerDashboard(ctk.CTkFrame):
 
         self.btn_my_proposals = ctk.CTkButton(self.topbar, text="Proposals", fg_color="transparent",
                                               text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
-                                              width=100, height=35)
+                                              width=100, height=35, command=self.load_my_proposals_screen)
         self.btn_my_proposals.pack(side="left", padx=10)
 
         self.btn_profile = ctk.CTkButton(self.topbar, text="My Profile", fg_color="transparent",
@@ -77,9 +79,20 @@ class FreelancerDashboard(ctk.CTkFrame):
     def load_browse_jobs_screen(self):
         self.clear_content_area()
         self.content_area = BrowseJobsFrame(self, self.user_id, self.load_main_dashboard)
+        self.grid_rowconfigure(1, weight=1)
         self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
 
     def load_profile_screen(self):
         self.clear_content_area()
         self.content_area = FreelancerProfileFrame(self, self.user_id, self.load_main_dashboard)
+        self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+
+    def load_apply_form(self, job_id):
+        self.clear_content_area()
+        self.content_area = ApplyJobFrame(self, self.user_id, job_id, self.load_browse_jobs_screen)
+        self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+
+    def load_my_proposals_screen(self):
+        self.clear_content_area()
+        self.content_area = MyProposalsFrame(self, self.user_id, self.load_main_dashboard)
         self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)

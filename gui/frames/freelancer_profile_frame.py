@@ -14,22 +14,23 @@ class FreelancerProfileFrame(ctk.CTkFrame):
         self.user_id = user_id
         self.back_to_dashboard_cb = back_to_dashboard_cb
 
-        # Izmenjen glavni naslov na vrhu u "My Profile"
         self.label_title = ctk.CTkLabel(self, text="My Profile", font=("Arial", 22, "bold"))
         self.label_title.pack(pady=(15, 2))
 
-        self.label_subtitle = ctk.CTkLabel(self, text="Manage your identity, expertise and languages",
+        self.label_subtitle = ctk.CTkLabel(self, text="Manage your identity, expertise and achievements",
                                            font=("Arial", 13), text_color="gray")
         self.label_subtitle.pack(pady=(0, 15))
 
-        self.main_scroll = ctk.CTkScrollableFrame(self, width=740, height=540, corner_radius=12, fg_color="gray10")
-        self.main_scroll.pack(padx=20, pady=10, fill="both", expand=True)
+        self.tabview = ctk.CTkTabview(self, width=740, height=480)
+        self.tabview.pack(padx=20, pady=5, fill="both", expand=True)
+
+        self.tab_general = self.tabview.add("Personal Details")
+        self.tab_skills_lang = self.tabview.add("Skills & Languages")
+        self.tab_portfolio_history = self.tabview.add("Portfolio & History")
 
         self.setup_general_section()
-        self.setup_skills_section()
-        self.setup_languages_section()
-        self.setup_portfolio_section()
-        self.setup_history_section()
+        self.setup_skills_languages_section()
+        self.setup_portfolio_history_section()
 
         self.btn_back = ctk.CTkButton(self, text="⬅ Back to Dashboard", width=180, height=38, fg_color="gray30",
                                       hover_color="gray40", command=self.back_to_dashboard_cb)
@@ -38,89 +39,69 @@ class FreelancerProfileFrame(ctk.CTkFrame):
         self.load_all_profile_data()
 
     def setup_general_section(self):
-        section = ctk.CTkFrame(self.main_scroll, fg_color="transparent")
-        section.pack(fill="x", padx=15, pady=10)
+        self.lbl_username = ctk.CTkLabel(self.tab_general, text="User: ", font=("Arial", 14, "bold"))
+        self.lbl_username.pack(anchor="w", padx=30, pady=(20, 5))
 
-        ctk.CTkLabel(section, text="👤 Personal Details", font=("Arial", 15, "bold")).pack(anchor="w", pady=(0, 10))
+        self.lbl_email = ctk.CTkLabel(self.tab_general, text="Email: ", font=("Arial", 14), text_color="gray")
+        self.lbl_email.pack(anchor="w", padx=30, pady=5)
 
-        row1 = ctk.CTkFrame(section, fg_color="transparent")
-        row1.pack(fill="x", pady=2)
-        self.lbl_username = ctk.CTkLabel(row1, text="User: ", font=("Arial", 13, "bold"))
-        self.lbl_username.pack(side="left")
-        self.lbl_rating = ctk.CTkLabel(row1, text="Rating: 0.00 ★", font=("Arial", 13, "bold"), text_color="#F1C40F")
-        self.lbl_rating.pack(side="right")
+        self.lbl_rating = ctk.CTkLabel(self.tab_general, text="Rating: 0.00 ★", font=("Arial", 14, "bold"), text_color="#F1C40F")
+        self.lbl_rating.pack(anchor="w", padx=30, pady=5)
 
-        row2 = ctk.CTkFrame(section, fg_color="transparent")
-        row2.pack(fill="x", pady=(0, 10))
-        self.lbl_email = ctk.CTkLabel(row2, text="Email: ", font=("Arial", 13), text_color="gray")
-        self.lbl_email.pack(anchor="w")
+        ctk.CTkLabel(self.tab_general, text="Full Name:", font=("Arial", 12)).pack(anchor="w", padx=30, pady=(20, 2))
+        self.entry_name = ctk.CTkEntry(self.tab_general, width=650)
+        self.entry_name.pack(padx=30, pady=(0, 10))
 
-        self.entry_name = ctk.CTkEntry(section, placeholder_text="Full Name", width=650)
-        self.entry_name.pack(pady=5)
+        ctk.CTkLabel(self.tab_general, text="Years of Experience:", font=("Arial", 12)).pack(anchor="w", padx=30, pady=(10, 2))
+        self.entry_experience = ctk.CTkEntry(self.tab_general, width=650)
+        self.entry_experience.pack(padx=30, pady=(0, 20))
 
-        row3 = ctk.CTkFrame(section, fg_color="transparent")
-        row3.pack(fill="x", pady=5)
-        self.entry_experience = ctk.CTkEntry(row3, placeholder_text="Years of Experience", width=490)
-        self.entry_experience.pack(side="left")
-        ctk.CTkButton(row3, text="💾 Save Changes", width=140, font=("Arial", 12, "bold"),
-                      command=self.handle_save).pack(side="right")
+        self.btn_save_general = ctk.CTkButton(self.tab_general, text="💾 Save Changes", width=200, height=35,
+                                              font=("Arial", 13, "bold"), command=self.handle_save)
+        self.btn_save_general.pack(pady=10)
 
-        ctk.CTkLabel(self.main_scroll, text="─" * 70, text_color="gray30").pack(pady=10)
+    def setup_skills_languages_section(self):
+        self.skills_scroll = ctk.CTkScrollableFrame(self.tab_skills_lang, width=320, height=280, label_text="🛠️ Core Skills")
+        self.skills_scroll.pack(side="left", padx=15, pady=10, fill="both", expand=True)
 
-    def setup_skills_section(self):
-        section = ctk.CTkFrame(self.main_scroll, fg_color="transparent")
-        section.pack(fill="x", padx=15, pady=5)
+        row_skill = ctk.CTkFrame(self.skills_scroll, fg_color="transparent")
+        row_skill.pack(fill="x", pady=5)
+        self.entry_skill = ctk.CTkEntry(row_skill, placeholder_text="Add skill...", width=180)
+        self.entry_skill.pack(side="left", padx=(0, 5))
+        ctk.CTkButton(row_skill, text="➕", width=40, command=self.handle_add_skill).pack(side="left")
 
-        ctk.CTkLabel(section, text="🛠️ Core Skills", font=("Arial", 15, "bold")).pack(anchor="w", pady=(0, 5))
-        self.skills_area = ctk.CTkFrame(section, fg_color="gray15", corner_radius=8)
+        self.skills_area = ctk.CTkFrame(self.skills_scroll, fg_color="gray15", corner_radius=8)
         self.skills_area.pack(fill="x", pady=5)
 
-        row = ctk.CTkFrame(section, fg_color="transparent")
-        row.pack(fill="x", pady=5)
-        self.entry_skill = ctk.CTkEntry(row, placeholder_text="Add new skill...", width=540)
-        self.entry_skill.pack(side="left")
-        ctk.CTkButton(row, text="➕ Add", width=100, command=self.handle_add_skill).pack(side="right")
+        self.lang_scroll = ctk.CTkScrollableFrame(self.tab_skills_lang, width=320, height=280, label_text="🌐 Languages Spoken")
+        self.lang_scroll.pack(side="right", padx=15, pady=10, fill="both", expand=True)
 
-        ctk.CTkLabel(self.main_scroll, text="─" * 70, text_color="gray30").pack(pady=10)
+        row_lang = ctk.CTkFrame(self.lang_scroll, fg_color="transparent")
+        row_lang.pack(fill="x", pady=5)
+        self.entry_language = ctk.CTkEntry(row_lang, placeholder_text="Add language...", width=180)
+        self.entry_language.pack(side="left", padx=(0, 5))
+        ctk.CTkButton(row_lang, text="➕", width=40, command=self.handle_add_language).pack(side="left")
 
-    def setup_languages_section(self):
-        section = ctk.CTkFrame(self.main_scroll, fg_color="transparent")
-        section.pack(fill="x", padx=15, pady=5)
-
-        ctk.CTkLabel(section, text="🌐 Languages Spoken", font=("Arial", 15, "bold")).pack(anchor="w", pady=(0, 5))
-        self.languages_area = ctk.CTkFrame(section, fg_color="gray15", corner_radius=8)
+        self.languages_area = ctk.CTkFrame(self.lang_scroll, fg_color="gray15", corner_radius=8)
         self.languages_area.pack(fill="x", pady=5)
 
-        row = ctk.CTkFrame(section, fg_color="transparent")
-        row.pack(fill="x", pady=5)
-        self.entry_language = ctk.CTkEntry(row, placeholder_text="Add new language...", width=540)
-        self.entry_language.pack(side="left")
-        ctk.CTkButton(row, text="➕ Add", width=100, command=self.handle_add_language).pack(side="right")
+    def setup_portfolio_history_section(self):
+        self.portfolio_scroll = ctk.CTkScrollableFrame(self.tab_portfolio_history, width=320, height=280, label_text="🔗 Portfolio Links")
+        self.portfolio_scroll.pack(side="left", padx=15, pady=10, fill="both", expand=True)
 
-        ctk.CTkLabel(self.main_scroll, text="─" * 70, text_color="gray30").pack(pady=10)
+        row_port = ctk.CTkFrame(self.portfolio_scroll, fg_color="transparent")
+        row_port.pack(fill="x", pady=5)
+        self.entry_portfolio = ctk.CTkEntry(row_port, placeholder_text="Add link...", width=180)
+        self.entry_portfolio.pack(side="left", padx=(0, 5))
+        ctk.CTkButton(row_port, text="➕", width=40, command=self.handle_add_portfolio).pack(side="left")
 
-    def setup_portfolio_section(self):
-        section = ctk.CTkFrame(self.main_scroll, fg_color="transparent")
-        section.pack(fill="x", padx=15, pady=5)
-
-        ctk.CTkLabel(section, text="🔗 Portfolio Links", font=("Arial", 15, "bold")).pack(anchor="w", pady=(0, 5))
-        self.portfolio_area = ctk.CTkFrame(section, fg_color="gray15", corner_radius=8)
+        self.portfolio_area = ctk.CTkFrame(self.portfolio_scroll, fg_color="gray15", corner_radius=8)
         self.portfolio_area.pack(fill="x", pady=5)
 
-        row = ctk.CTkFrame(section, fg_color="transparent")
-        row.pack(fill="x", pady=5)
-        self.entry_portfolio = ctk.CTkEntry(row, placeholder_text="Add link (e.g. ://github.com)", width=540)
-        self.entry_portfolio.pack(side="left")
-        ctk.CTkButton(row, text="➕ Add", width=100, command=self.handle_add_portfolio).pack(side="right")
+        self.history_scroll = ctk.CTkScrollableFrame(self.tab_portfolio_history, width=320, height=280, label_text="🏆 Job History")
+        self.history_scroll.pack(side="right", padx=15, pady=10, fill="both", expand=True)
 
-        ctk.CTkLabel(self.main_scroll, text="─" * 70, text_color="gray30").pack(pady=10)
-
-    def setup_history_section(self):
-        section = ctk.CTkFrame(self.main_scroll, fg_color="transparent")
-        section.pack(fill="x", padx=15, pady=5)
-
-        ctk.CTkLabel(section, text="🏆 Job History & Earnings", font=("Arial", 15, "bold")).pack(anchor="w", pady=(0, 5))
-        self.history_area = ctk.CTkFrame(section, fg_color="gray15", corner_radius=8)
+        self.history_area = ctk.CTkFrame(self.history_scroll, fg_color="gray15", corner_radius=8)
         self.history_area.pack(fill="x", pady=5)
 
     def load_all_profile_data(self):
@@ -147,7 +128,7 @@ class FreelancerProfileFrame(ctk.CTkFrame):
                          text_color="gray").pack(pady=10, padx=15, anchor="w")
             return
         for item in data:
-            name = item if isinstance(item, tuple) else item
+            name = item if isinstance(item, str) else item
             lbl = ctk.CTkLabel(target_frame, text=f"{prefix} {name}", font=("Arial", 13), anchor="w")
             lbl.pack(fill="x", padx=15, pady=3)
 
@@ -160,32 +141,40 @@ class FreelancerProfileFrame(ctk.CTkFrame):
             return
         for job in history:
             title, earnings = job
-            ctk.CTkLabel(self.history_area, text=f"⭐ {title} (Earned: ${earnings})", font=("Arial", 13),
-                         text_color="#2ECC71", anchor="w").pack(fill="x", padx=15, pady=3)
+            ctk.CTkLabel(self.history_area, text=f"⭐ {title}\n  Earned: ${earnings}", font=("Arial", 12),
+                         text_color="#2ECC71", anchor="w", justify="left").pack(fill="x", padx=15, pady=5)
 
     def handle_save(self):
-        name, exp_str = self.entry_name.get().strip(), self.entry_experience.get().strip()
-        if not name or not exp_str: return
+        name = self.entry_name.get().strip()
+        exp_str = self.entry_experience.get().strip()
+        if not name or not exp_str:
+            messagebox.showwarning("Warning", "Name and experience are required.")
+            return
         try:
-            if save_free_profile_data(self.user_id, name, int(exp_str)):
-                messagebox.showinfo("Success", "Profile details updated successfully!")
-        except:
-            messagebox.showwarning("Error", "Invalid input format.")
+            exp = int(exp_str)
+        except ValueError:
+            messagebox.showerror("Error", "Experience must be an integer.")
+            return
+        if save_free_profile_data(self.user_id, name, exp):
+            messagebox.showinfo("Success", "Personal details updated.")
+            self.load_all_profile_data()
+        else:
+            messagebox.showerror("Error", "Failed to update details.")
 
     def handle_add_skill(self):
-        val = self.entry_skill.get().strip()
-        if val and save_new_skill(self.user_id, val):
-            self.entry_skill.delete(0, "end");
-            self.load_list_tags(get_skills(self.user_id), self.skills_area, "✔️")
+        skill = self.entry_skill.get().strip()
+        if skill and save_new_skill(self.user_id, skill):
+            self.entry_skill.delete(0, "end")
+            self.load_all_profile_data()
 
     def handle_add_language(self):
-        val = self.entry_language.get().strip()
-        if val and save_new_language(self.user_id, val):
-            self.entry_language.delete(0, "end");
-            self.load_list_tags(get_languages(self.user_id), self.languages_area, "🌐")
+        lang = self.entry_language.get().strip()
+        if lang and save_new_language(self.user_id, lang):
+            self.entry_language.delete(0, "end")
+            self.load_all_profile_data()
 
     def handle_add_portfolio(self):
-        val = self.entry_portfolio.get().strip()
-        if val and save_new_portfolio(self.user_id, val):
-            self.entry_portfolio.delete(0, "end");
-            self.load_list_tags(get_portfolio(self.user_id), self.portfolio_area, "🔗")
+        link = self.entry_portfolio.get().strip()
+        if link and save_new_portfolio(self.user_id, link):
+            self.entry_portfolio.delete(0, "end")
+            self.load_all_profile_data()

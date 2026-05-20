@@ -3,6 +3,7 @@ from tkinter import messagebox
 from gui.frames.post_job_frame import PostJobFrame
 from gui.frames.my_jobs_frame import MyJobsFrame
 from gui.frames.profile_frame import ProfileFrame
+from gui.frames.app_frame import ApplicationsFrame
 from services.job_service import post_new_job
 
 
@@ -90,6 +91,11 @@ class ClientDashboard(ctk.CTkFrame):
     def load_profile_screen(self):
         self.clear_content_area()
         self.content_area = ProfileFrame(self, self.user_id, self.load_main_dashboard)
+        self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+
+    def load_job_applications(self, job_id):
+        self.clear_content_area()
+        self.content_area = ApplicationsFrame(self, job_id, self.load_my_jobs_list)
         self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
 
     def process_job_submission(self, title, description, budget, deadline, seniority):

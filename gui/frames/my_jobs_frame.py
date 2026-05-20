@@ -57,6 +57,12 @@ class MyJobsFrame(ctk.CTkFrame):
             actions_frame = ctk.CTkFrame(job_card, fg_color="transparent")
             actions_frame.pack(side="right", padx=15, pady=12)
 
+            if status in ["Open", "Paused"]:
+                btn_apps = ctk.CTkButton(actions_frame, text="👥 Applications", width=75, height=28, font=("Arial", 11),
+                                         fg_color="#34495E", hover_color="#2C3E50",
+                                         command=lambda j=job_id: self.view_applications(j))
+                btn_apps.pack(pady=3)
+
             if status == "Open":
                 btn_pause = ctk.CTkButton(actions_frame, text="⏸ Pause", width=75, height=28, font=("Arial", 11),
                                           fg_color="#F39C12", hover_color="#D35400",
@@ -73,6 +79,10 @@ class MyJobsFrame(ctk.CTkFrame):
                                           fg_color="#E74C3C", hover_color="#C0392B",
                                           command=lambda j=job_id: self.handle_close(j))
                 btn_close.pack(pady=3)
+
+    def view_applications(self, job_id):
+        if hasattr(self.master, "load_job_applications"):
+            self.master.load_job_applications(job_id)
 
     def handle_pause(self, job_id):
         if pause_job(job_id):

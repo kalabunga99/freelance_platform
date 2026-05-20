@@ -59,5 +59,5 @@ class BrowseJobsFrame(ctk.CTkFrame):
             btn_apply.pack(side="right", padx=20, pady=12)
 
     def handle_apply(self, job_id):
-        messagebox.showinfo("Application",
-                            f"You clicked apply for Job ID: {job_id}!\n(We will build the application storage logic next.)")
+        if hasattr(self.master, "load_apply_form"):
+            self.master.load_apply_form(job_id)

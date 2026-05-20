@@ -1,4 +1,7 @@
 from models.job import Job
+import repositories.job_repository as job_repository
+import repositories.project_repository as project_repository
+
 from repositories.job_repository import (
     add_job,
     get_jobs_by_client,
@@ -34,3 +37,9 @@ def extend_job_deadline(job_id, new_deadline):
 
 def get_available_jobs():
     return get_all_open_jobs()
+def close_job(job_id):
+
+    if job_repository.update_job_status(job_id, 'Closed'):
+        project_repository.cancel_project_by_job_id(job_id)
+        return True
+    return False

@@ -100,3 +100,63 @@ def get_applications_by_freelancer(freelancer_id):
         cursor.close()
         db.close()
 
+
+def hire_freelancer_transaction(job_id, client_id, freelancer_id, job_title, total_budget):
+    db = get_connection()
+    if not db:
+        return False
+
+    cursor = db.cursor()
+    try:
+        query_job = "UPDATE jobs SET status = 'In Progress' WHERE job_id = %s"
+        cursor.execute(query_job, (job_id,))
+
+        query_thread_check = """
+                             SELECT thread_id \
+                             FROM conversation_threads
+                             WHERE client_id = %s \
+                               AND freelancer_id = %s \
+                             """
+        cursor.execute(query_thread_check, (client_id, freelancer_id))
+        thread_result = cursor.fetchone()
+
+        if thread_result:
+            thread_id = thread_result[0] if isinstance(thread_result, tuple) else thread_result
+        else:
+            query_thread = """
+                           INSERT INTO conversation_threads (client_id, freelancer_id, subject)
+                           VALUES (%s, %s, %s) \
+                           """
+            cursor.execute(query_thread, (client_id, freelancer_id, job_title))
+            thread_id = cursor.lastrowid
+
+            query_part = "INSERT INTO thread_participants (thread_id, user_id) VALUES (%s, %s), (%s, %s)"
+            cursor.execute(query_part, (thread_id, client_id, thread_id, freelancer_id))
+
+        system_message = f"System: Hello! I have accepted your proposal for this job. Let's start working!"
+        query_msg = "INSERT INTO messages (thread_id, sender_id, body) VALUES (%s, %s, %s)"
+        cursor.execute(query_msg, (thread_id, client_id, system_message))
+
+        query_proj = """
+                     INSERT INTO projects (job_id, client_id, freelancer_id, status)
+                     VALUES (%s, %s, %s, 'Active') \
+                     """
+        cursor.execute(query_proj, (job_id, client_id, freelancer_id))
+        project_id = cursor.lastrowid
+
+        query_m1 = "INSERT INTO project_milestones (project_id, title, amount, status) VALUES (%s, %s, %s, 'Active')"
+        cursor.execute(query_m1, (project_id, 'Initial Deposit / Kickoff', float(total_budget) * 0.30))
+
+        query_m2 = "INSERT INTO project_milestones (project_id, title, amount, status) VALUES (%s, %s, %s, 'Active')"
+        cursor.execute(query_m2, (project_id, 'Final Delivery & Review', float(total_budget) * 0.70))
+
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        print(f"Error: {e}")
+        return False
+    finally:
+        cursor.close()
+        db.close()
+

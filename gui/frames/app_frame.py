@@ -1,5 +1,6 @@
 import customtkinter as ctk
-from services.app_service import get_sorted_applications_for_client
+from tkinter import messagebox
+from services.app_service import get_sorted_applications_for_client, hire_freelancer_service
 
 
 class ApplicationsFrame(ctk.CTkFrame):
@@ -19,8 +20,8 @@ class ApplicationsFrame(ctk.CTkFrame):
                                  command=back_cb)
         btn_back.pack(side="left")
 
-        title_label = ctk.CTkLabel(header_frame, text="Job Applications", font=("Arial", 20, "bold"))
-        title_label.pack(side="left", padx=20)
+        self.title_label = ctk.CTkLabel(header_frame, text="Job Applications", font=("Arial", 20, "bold"))
+        self.title_label.pack(side="left", padx=20)
 
         filter_frame = ctk.CTkFrame(self, fg_color="transparent")
         filter_frame.grid(row=1, column=0, sticky="ew", padx=30, pady=(0, 10))
@@ -28,7 +29,7 @@ class ApplicationsFrame(ctk.CTkFrame):
         sort_label = ctk.CTkLabel(filter_frame, text="Sort by:", font=("Arial", 12))
         sort_label.pack(side="left", padx=(0, 10))
 
-        self.sort_option = ctk.CTkOptionMenu(filter_frame, values=["Default", "Price", "Experience", "Rate"],
+        self.sort_option = ctk.CTkOptionMenu(filter_frame, values=["Default", "cena", "iskustvo", "ocena"],
                                              width=120, command=self.on_sort_changed)
         self.sort_option.pack(side="left")
 
@@ -67,3 +68,21 @@ class ApplicationsFrame(ctk.CTkFrame):
             details_text = f"💰 Proposed Price: ${app['proposed_price']:.2f}   |   ⏱ Deadline: {app['proposed_deadline']} days"
             lbl_details = ctk.CTkLabel(card, text=details_text, font=("Arial", 12, "italic"), text_color="#3498DB")
             lbl_details.pack(anchor="w", padx=15, pady=(2, 8))
+
+            btn_hire = ctk.CTkButton(card, text="🏆 Hire", width=90, height=30, font=("Arial", 12, "bold"),
+                                     fg_color="#2ECC71", hover_color="#27AE60",
+                                     command=lambda f_id=app['freelancer_id'], f_name=app['freelancer_name'], p=app['proposed_price']: self.handle_hire(f_id, f_name, p))
+            btn_hire.pack(anchor="e", padx=15, pady=(0, 10))
+
+    def handle_hire(self, freelancer_id, freelancer_name, proposed_price):
+        confirm = messagebox.askyesno("Confirm Hire", f"Are you sure you want to hire {freelancer_name} for this project?")
+        if not confirm:
+            return
+
+        job_title = self.title_label.cget("text")
+
+        if hire_freelancer_service(self.job_id, self.master.user_id, freelancer_id, job_title, proposed_price):
+            messagebox.showinfo("Success", f"You have successfully hired {freelancer_name}!\nProject tracker and chat have been initialized.")
+            self.back_cb()
+        else:
+            messagebox.showerror("Error", "Failed to complete the hiring process. Check database connection.")

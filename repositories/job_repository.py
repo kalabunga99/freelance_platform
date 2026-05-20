@@ -108,3 +108,32 @@ def get_all_open_jobs():
     finally:
         cursor.close()
         db.close()
+def submit_review_and_update_rating(project_id, client_id, freelancer_id, rating, comment):
+    db = get_connection()
+    if not db:
+        return False
+
+    cursor = db.cursor()
+    try:
+        query_review = """
+            INSERT INTO reviews (project_id, client_id, freelancer_id, rating, comment)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        cursor.execute(query_review, (project_id, client_id, freelancer_id, rating, comment))
+
+        query_avg = "SELECT AVG(rating) FROM reviews WHERE freelancer_id = %s"
+        cursor.execute(query_avg, (freelancer_id,))
+        new_avg = cursor.fetchone()[0]
+
+        query_update_free = "UPDATE freelancers SET rating = %s WHERE user_id = %s"
+        cursor.execute(query_update_free, (new_avg, freelancer_id))
+
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        print(f"Error submitting review: {e}")
+        return False
+    finally:
+        cursor.close()
+        db.close()

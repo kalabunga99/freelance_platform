@@ -1,5 +1,6 @@
 from models.application import Application
 import repositories.app_repository as app_repository
+import repositories.user_repository as user_repository
 
 
 def submit_application(job_id, freelancer_id, cover_letter, price, deadline):
@@ -33,4 +34,15 @@ def get_sorted_applications_for_client(job_id, criteria):
 
 def get_freelancer_proposals(freelancer_id):
     return app_repository.get_applications_by_freelancer(freelancer_id)
+def hire_freelancer_service(job_id, client_id, freelancer_id, job_title, total_budget):
+    client_profile = user_repository.get_profile_data(client_id)
+    if client_profile:
+        username, email, company_name, current_balance, average_grade = client_profile
+        if current_balance < float(total_budget):
+            return {"success": False, "message": f"Insufficient funds. Your balance is ${current_balance:.2f}, but the proposal requires ${float(total_budget):.2f}."}
+
+    result = app_repository.hire_freelancer_transaction(job_id, client_id, freelancer_id, job_title, total_budget)
+    if result:
+        return {"success": True, "message": "Successfully hired the freelancer!"}
+    return {"success": False, "message": "Database error occurred during hiring."}
 

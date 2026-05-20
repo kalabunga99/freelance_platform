@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox, simpledialog
 from services.job_service import get_client_jobs, pause_job, close_job, extend_job_deadline
+from services.project_service import get_user_projects
 
 
 class MyJobsFrame(ctk.CTkFrame):
@@ -8,24 +9,39 @@ class MyJobsFrame(ctk.CTkFrame):
         super().__init__(master, fg_color="transparent")
         self.client_id = client_id
         self.back_to_dashboard_cb = back_to_dashboard_cb
+        self.last_jobs_state = []
+        self.is_active = True
 
         self.label_title = ctk.CTkLabel(self, text="My Job Vacancies", font=("Arial", 22, "bold"))
         self.label_title.pack(pady=(20, 10))
 
         self.btn_back = ctk.CTkButton(self, text="⬅ Back to Dashboard", width=150, height=35,
-                                      command=self.back_to_dashboard_cb)
+                                      command=self.handle_back)
         self.btn_back.pack(pady=(0, 15))
 
         self.scroll_frame = ctk.CTkScrollableFrame(self, width=780, height=460, corner_radius=12)
         self.scroll_frame.pack(padx=20, pady=10, fill="both", expand=True)
 
         self.load_jobs()
+        self.start_auto_refresh()
 
     def load_jobs(self):
+        if not self.is_active:
+            return
+
+        jobs = get_client_jobs(self.client_id)
+        current_state = [(j[0], j[7]) for j in jobs]
+
+        if current_state == self.last_jobs_state:
+            return
+
+        self.last_jobs_state = current_state
+
         for widget in self.scroll_frame.winfo_children():
             widget.destroy()
 
-        jobs = get_client_jobs(self.client_id)
+        active_projects = get_user_projects(self.client_id, "Client")
+        project_map = {p['job_id']: p for p in active_projects}
 
         if not jobs:
             no_jobs_lbl = ctk.CTkLabel(self.scroll_frame, text="You haven't posted any job vacancies yet.",
@@ -45,7 +61,7 @@ class MyJobsFrame(ctk.CTkFrame):
             title_lbl = ctk.CTkLabel(text_frame, text=title, font=("Arial", 16, "bold"), anchor="w")
             title_lbl.pack(fill="x")
 
-            status_color = "#2ECC71" if status == "Open" else ("#F1C40F" if status == "Paused" else "#E74C3C")
+            status_color = "#2ECC71" if status == "Open" else ("#F1C40F" if status == "Paused" else "#3498DB")
             status_lbl = ctk.CTkLabel(text_frame, text=f"● {status} | Budget: ${budget} | Exp: {deadline}",
                                       font=("Arial", 12), text_color=status_color, anchor="w")
             status_lbl.pack(fill="x", pady=2)
@@ -69,7 +85,14 @@ class MyJobsFrame(ctk.CTkFrame):
                                           command=lambda j=job_id: self.handle_pause(j))
                 btn_pause.pack(pady=3)
 
-            if status != "Closed":
+            if status == "In Progress" and job_id in project_map:
+                p_data = project_map[job_id]
+                btn_contract = ctk.CTkButton(actions_frame, text="📄 Contract", width=75, height=28, font=("Arial", 11, "bold"),
+                                             fg_color="#2980B9", hover_color="#1F618D",
+                                             command=lambda p=p_data['project_id'], t=title, u=p_data['partner_username'], s=p_data['status']: self.view_contract(p, t, u, s))
+                btn_contract.pack(pady=3)
+
+            if status != "Closed" and status != "In Progress":
                 btn_extend = ctk.CTkButton(actions_frame, text="📅 Extend", width=75, height=28, font=("Arial", 11),
                                            fg_color="#3498DB", hover_color="#2980B9",
                                            command=lambda j=job_id: self.handle_extend(j))
@@ -80,9 +103,20 @@ class MyJobsFrame(ctk.CTkFrame):
                                           command=lambda j=job_id: self.handle_close(j))
                 btn_close.pack(pady=3)
 
+    def start_auto_refresh(self):
+        if self.is_active:
+            self.load_jobs()
+            self.master.after(3000, self.start_auto_refresh)
+
     def view_applications(self, job_id):
+        self.is_active = False
         if hasattr(self.master, "load_job_applications"):
             self.master.load_job_applications(job_id)
+
+    def view_contract(self, project_id, job_title, partner_username, project_status):
+        self.is_active = False
+        if hasattr(self.master, "load_contract_details"):
+            self.master.load_contract_details(project_id, job_title, partner_username, project_status)
 
     def handle_pause(self, job_id):
         if pause_job(job_id):
@@ -105,3 +139,7 @@ class MyJobsFrame(ctk.CTkFrame):
                 self.load_jobs()
             else:
                 messagebox.showerror("Error", "Failed to extend the deadline. Ensure format is YYYY-MM-DD.")
+
+    def handle_back(self):
+        self.is_active = False
+        self.back_to_dashboard_cb()

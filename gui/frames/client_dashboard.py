@@ -121,3 +121,9 @@ class ClientDashboard(ctk.CTkFrame):
             self.load_main_dashboard()
         else:
             messagebox.showerror("Database Error", "Failed to post the job vacancy. Check your database connection.")
+
+    def load_contract_details(self, project_id, job_title, partner_username, project_status):
+        self.clear_content_area()
+        from gui.frames.contract_details_frame import ContractDetailsFrame
+        self.content_area = ContractDetailsFrame(self, project_id, job_title, partner_username, project_status, self.load_my_jobs_list)
+        self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)

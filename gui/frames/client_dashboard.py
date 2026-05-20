@@ -4,6 +4,7 @@ from gui.frames.post_job_frame import PostJobFrame
 from gui.frames.my_jobs_frame import MyJobsFrame
 from gui.frames.profile_frame import ProfileFrame
 from gui.frames.app_frame import ApplicationsFrame
+from gui.frames.inbox_frame import InboxFrame
 from services.job_service import post_new_job
 
 
@@ -31,6 +32,11 @@ class ClientDashboard(ctk.CTkFrame):
                                          text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), width=100,
                                          height=35, command=self.load_my_jobs_list)
         self.btn_my_jobs.pack(side="left", padx=10)
+
+        self.btn_inbox = ctk.CTkButton(self.topbar, text="Messages", fg_color="transparent",
+                                       text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), width=100,
+                                       height=35, command=self.load_inbox_screen)
+        self.btn_inbox.pack(side="left", padx=10)
 
         self.btn_profile = ctk.CTkButton(self.topbar, text="Profile", fg_color="transparent",
                                          text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), width=100,
@@ -96,6 +102,17 @@ class ClientDashboard(ctk.CTkFrame):
     def load_job_applications(self, job_id):
         self.clear_content_area()
         self.content_area = ApplicationsFrame(self, job_id, self.load_my_jobs_list)
+        self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+
+    def load_inbox_screen(self):
+        self.clear_content_area()
+        self.content_area = InboxFrame(self, self.user_id, self.load_chat_screen, self.load_main_dashboard)
+        self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+
+    def load_chat_screen(self, thread_id, participant_username, participant_id):
+        self.clear_content_area()
+        from gui.frames.chat_frame import ChatFrame
+        self.content_area = ChatFrame(self, self.user_id, thread_id, participant_username, participant_id, self.load_inbox_screen)
         self.content_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
 
     def process_job_submission(self, title, description, budget, deadline, seniority):

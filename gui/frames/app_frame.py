@@ -29,7 +29,7 @@ class ApplicationsFrame(ctk.CTkFrame):
         sort_label = ctk.CTkLabel(filter_frame, text="Sort by:", font=("Arial", 12))
         sort_label.pack(side="left", padx=(0, 10))
 
-        self.sort_option = ctk.CTkOptionMenu(filter_frame, values=["Default", "cena", "iskustvo", "ocena"],
+        self.sort_option = ctk.CTkOptionMenu(filter_frame, values=["Default", "cena", "iskustvo", "ocena", "AI score-u"],
                                              width=120, command=self.on_sort_changed)
         self.sort_option.pack(side="left")
 
@@ -58,6 +58,9 @@ class ApplicationsFrame(ctk.CTkFrame):
             card.pack(fill="x", pady=5, padx=5)
 
             info_text = f"👤 {app['freelancer_name']}  |  Exp: {app['years_of_experience']} yrs  |  Rating: ★{app['freelancer_rating']}"
+            if 'ai_score' in app:
+                info_text += f"  |  🤖 AI Score: {app['ai_score']}%"
+
             lbl_info = ctk.CTkLabel(card, text=info_text, font=("Arial", 13, "bold"), text_color=("gray10", "gray90"))
             lbl_info.pack(anchor="w", padx=15, pady=(8, 2))
 
@@ -81,8 +84,9 @@ class ApplicationsFrame(ctk.CTkFrame):
 
         job_title = self.title_label.cget("text")
 
-        if hire_freelancer_service(self.job_id, self.master.user_id, freelancer_id, job_title, proposed_price):
-            messagebox.showinfo("Success", f"You have successfully hired {freelancer_name}!\nProject tracker and chat have been initialized.")
+        response = hire_freelancer_service(self.job_id, self.master.user_id, freelancer_id, job_title, proposed_price)
+        if response["success"]:
+            messagebox.showinfo("Success", "Project tracker and chat have been initialized successfully.")
             self.back_cb()
         else:
-            messagebox.showerror("Error", "Failed to complete the hiring process. Check database connection.")
+            messagebox.showerror("Error", response["message"])
